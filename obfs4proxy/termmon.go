@@ -127,7 +127,7 @@ func newTermMonitor() (m *termMonitor) {
 		//		return
 		//	}
 		//}
-		if runtime.GOOS != "windows" {
+		if runtime.GOOS != "windows" && runtime.GOOS != "darwin" {
 			go m.termOnPPIDChange(ppid)
 		}
 	}
