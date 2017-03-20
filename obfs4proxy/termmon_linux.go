@@ -25,8 +25,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package main
 
+package main
+/*
 import (
 	"fmt"
 	"syscall"
@@ -47,3 +48,4 @@ func termMonitorInitLinux(m *termMonitor) error {
 func init() {
 	termMonitorOSInit = termMonitorInitLinux
 }
+*/
