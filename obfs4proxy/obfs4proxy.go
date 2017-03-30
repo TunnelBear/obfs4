@@ -53,7 +53,7 @@ import (
 )
 
 const (
-	obfs4proxyVersion = "0.0.7"
+	obfs4proxyVersion = "1.0.1"
 	obfs4proxyLogFile = "obfs4proxy.log"
 	socksAddr         = "127.0.0.1:%d"
 )
@@ -317,7 +317,7 @@ func copyLoop(a net.Conn, b net.Conn) error {
 }
 
 func getVersion() string {
-	return fmt.Sprintf("obfs4proxy-%s", obfs4proxyVersion)
+	return fmt.Sprintf("TunnelBear GhostBear Proxy - %s", obfs4proxyVersion)
 }
 
 func main() {
