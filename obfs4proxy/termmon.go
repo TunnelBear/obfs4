@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Yawning Angel <yawning at torproject dot org>
+ * Copyright (c) 2015, Yawning Angel <yawning at schwanenlied dot me>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ import (
 	"syscall"
 	"time"
 
-	"git.torproject.org/pluggable-transports/obfs4.git/common/log"
+	"gitlab.com/yawning/obfs4.git/common/log"
 )
 
 //var termMonitorOSInit func(*termMonitor) error

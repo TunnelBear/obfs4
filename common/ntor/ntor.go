@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Yawning Angel <yawning at torproject dot org>
+ * Copyright (c) 2014, Yawning Angel <yawning at schwanenlied dot me>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 //
 // Before using this package, it is strongly recommended that the specification
 // is read and understood.
-package ntor
+package ntor // import "gitlab.com/yawning/obfs4.git/common/ntor"
 
 import (
 	"bytes"
@@ -43,12 +43,10 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/agl/ed25519/extra25519"
+	"gitlab.com/yawning/obfs4.git/common/csrand"
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/hkdf"
-
-	"github.com/agl/ed25519/extra25519"
-
-	"git.torproject.org/pluggable-transports/obfs4.git/common/csrand"
 )
 
 const (
@@ -387,21 +385,21 @@ func ntorCommon(secretInput bytes.Buffer, id *NodeID, b *PublicKey, x *PublicKey
 
 	// KEY_SEED = H(secret_input, t_key)
 	h := hmac.New(sha256.New, tKey)
-	h.Write(secretInput.Bytes())
+	_, _ = h.Write(secretInput.Bytes())
 	tmp := h.Sum(nil)
 	copy(keySeed[:], tmp)
 
 	// verify = H(secret_input, t_verify)
 	h = hmac.New(sha256.New, tVerify)
-	h.Write(secretInput.Bytes())
+	_, _ = h.Write(secretInput.Bytes())
 	verify := h.Sum(nil)
 
 	// auth_input = verify | ID | B | Y | X | PROTOID | "Server"
 	authInput := bytes.NewBuffer(verify)
-	authInput.Write(suffix.Bytes())
-	authInput.Write([]byte("Server"))
+	_, _ = authInput.Write(suffix.Bytes())
+	_, _ = authInput.Write([]byte("Server"))
 	h = hmac.New(sha256.New, tMac)
-	h.Write(authInput.Bytes())
+	_, _ = h.Write(authInput.Bytes())
 	tmp = h.Sum(nil)
 	copy(auth[:], tmp)
 
