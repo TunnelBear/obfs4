@@ -40,6 +40,8 @@ import (
 	"path"
 	"sync"
 	"syscall"
+	"path/filepath"
+	"strconv"
 
 	"git.torproject.org/pluggable-transports/goptlib.git"
 	"gitlab.com/yawning/obfs4.git/common/log"
