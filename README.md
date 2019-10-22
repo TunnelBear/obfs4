@@ -1,3 +1,27 @@
+## Building obfs4-Android
+
+### Background Info
+The original obfs4 from Yawning was not meant to be standalone/unmanaged nor specifically build for Android, as it was supposed to be a pluggable transport for Tor. This TunnelBear fork makes obfs4 standalone and buildable for Android.
+
+### Prerequisites
+* Have Golang 1.13+ installed on your computer.
+* Be using Bash, the script will not work using Fish or another Shell.
+* Take ownership of `./obfs4proxy/android_build.sh`.
+
+### Building steps
+1. Download Android NDK r16b ([here](https://developer.android.com/ndk/downloads/revision_history.html)), place it in `$HOME/Library/Android/sdk/ndk-bundle`.
+2. Prepare the Android project that will make use of obfs4, with _minSdkVersion 16_. Note the directory of this project.
+   * If your _minSdkVersion_ is different than that, you will need to change the `ndk_platform` in `./obfs4proxy/android_build.sh` to match it.
+   * `android_build.sh` builds for the following targets: `(386 amd64 armv5 armv7 arm64)`. You will need to manually add/remove targets depending on your needs.
+3. Navigate to `./obfs-android/obfs4proxy` in Terminal and run `./android_build.sh [-s <PATH_TO_PROJECT_SRC>] [-n <PATH_TO_NDK_R16>] [-h]`.
+   * The `-s` flag is the path to Android project described in the prerequisites above. It is optional, without it the binaries will not be copied over to the Android project and remain in the `./out/` directory.
+   * The `-n` flag is the path to the NDK r16b described in step 1 above. It is optional, without it the default `$HOME/Library/Android/sdk/ndk-bundle` path will be used.
+   * The `-h` flag has no parameters. It is optional and simply displays the help text.
+4. When completed successfully, if an Android project source was provided, the binaries can be found in `$PROJECT_SRC/libs/${suffix}/libexecpieproxy.so` otherwise they can be found in `./out/`.
+
+### TODO
+* Have the `android_build.sh` script accept two additional flags, `-m` for _minSdkVersion_ and `-t` for architectures you want to target. This will minimize the need to make changes to `android_build.sh` itself.
+
 ## obfs4 - The obfourscator
 #### Yawning Angel (yawning at schwanenlied dot me)
 
