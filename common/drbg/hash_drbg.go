@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Yawning Angel <yawning at torproject dot org>
+ * Copyright (c) 2014, Yawning Angel <yawning at schwanenlied dot me>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
 
 // Package drbg implements a minimalistic DRBG based off SipHash-2-4 in OFB
 // mode.
-package drbg
+package drbg // import "gitlab.com/yawning/obfs4.git/common/drbg"
 
 import (
 	"encoding/binary"
@@ -36,8 +36,7 @@ import (
 	"hash"
 
 	"github.com/dchest/siphash"
-
-	"git.torproject.org/pluggable-transports/obfs4.git/common/csrand"
+	"gitlab.com/yawning/obfs4.git/common/csrand"
 )
 
 // Size is the length of the HashDrbg output.
@@ -140,7 +139,7 @@ func (drbg *HashDrbg) Seed(seed int64) {
 
 // NextBlock returns the next 8 byte DRBG block.
 func (drbg *HashDrbg) NextBlock() []byte {
-	drbg.sip.Write(drbg.ofb[:])
+	_, _ = drbg.sip.Write(drbg.ofb[:])
 	copy(drbg.ofb[:], drbg.sip.Sum(nil))
 
 	ret := make([]byte, Size)

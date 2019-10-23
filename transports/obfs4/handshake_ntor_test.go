@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Yawning Angel <yawning at torproject dot org>
+ * Copyright (c) 2014, Yawning Angel <yawning at schwanenlied dot me>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,8 @@ import (
 	"bytes"
 	"testing"
 
-	"git.torproject.org/pluggable-transports/obfs4.git/common/ntor"
-	"git.torproject.org/pluggable-transports/obfs4.git/common/replayfilter"
+	"gitlab.com/yawning/obfs4.git/common/ntor"
+	"gitlab.com/yawning/obfs4.git/common/replayfilter"
 )
 
 func TestHandshakeNtorClient(t *testing.T) {

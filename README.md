@@ -1,5 +1,39 @@
+## Building obfs4-Android
+
+### Background Info
+The original obfs4 from Yawning was not meant to be standalone/unmanaged nor specifically build for Android, as it was supposed to be a pluggable transport for Tor. This TunnelBear fork makes obfs4 standalone and buildable for Android.
+
+### Prerequisites
+* Have Golang 1.13+ installed on your computer.
+* Be using Bash, the script will not work using Fish or another Shell.
+* Take ownership of `./obfs4proxy/android_build.sh`.
+* Wireshark for testing (optional).
+
+### Building Steps
+1. Download Android NDK r16b ([here](https://developer.android.com/ndk/downloads/revision_history.html)), place it in `$HOME/Library/Android/sdk/ndk-bundle`.
+2. Prepare the Android project that will make use of obfs4, with _minSdkVersion 16_. Note the directory of this project.
+   * If your _minSdkVersion_ is different than that, you will need to change the `ndk_platform` in `./obfs4proxy/android_build.sh` to match it.
+   * `android_build.sh` builds for the following targets: `(386 amd64 armv5 armv7 arm64)`. You will need to manually add/remove targets depending on your needs.
+3. Navigate to `./obfs-android/obfs4proxy` in Terminal and run `./android_build.sh [-s <PATH_TO_PROJECT_SRC>] [-n <PATH_TO_NDK_R16>] [-h]`.
+   * The `-s` flag is the path to Android project described in the prerequisites above. It is optional, without it the binaries will not be copied over to the Android project and remain in the `./out/` directory.
+   * The `-n` flag is the path to the NDK r16b described in step 1 above. It is optional, without it the default `$HOME/Library/Android/sdk/ndk-bundle` path will be used.
+   * The `-h` flag has no parameters. It is optional and simply displays the help text.
+4. When completed successfully, if an Android project source was provided, the binaries can be found in `$PROJECT_SRC/libs/${suffix}/libexecpieproxy.so` otherwise they can be found in `./out/`.
+
+### Testing Steps
+1. Using the following command, start an emulator and have it write traffic to a `.cap` file:
+    * `~/Library/Android/sdk/emulator/emulator @emulator_name -verbose -tcpdump filename.cap`
+    * E.g. `emulator @DEVICE_NAME -verbose -tcpdump ghostbear-on.cap`
+2. Open the Android app, turn on obfs4 obfuscation, connect to VPN, and get some internet traffic going.
+3. Open the `.cap` file in Wireshark
+    * Obfs4 obfuscation OFF: Protocol type will show as _OpenVpn_.
+    * Obfs4 obfuscation ON: Protocol type will show as _UDP_ or _TCP_.
+
+### TODO
+* Have the `android_build.sh` script accept two additional flags, `-m` for _minSdkVersion_ and `-t` for architectures you want to target. This will minimize the need to make changes to `android_build.sh` itself.
+
 ## obfs4 - The obfourscator
-#### Yawning Angel (yawning at torproject dot org)
+#### Yawning Angel (yawning at schwanenlied dot me)
 
 ### What?
 
@@ -29,24 +63,24 @@ handshake variants without being obscenely slow is non-trivial.
 
 ### Dependencies
 
-Build time library dependencies are handled by go get automatically but are
-listed for clarity.
+Build time library dependencies are handled by the Go module automatically.
 
- * Go 1.2.0 or later.   Prior versions of Go (Eg: 1.0.2) are missing certain
-   important parts of the runtime library like a SHA256 implementation.
- * go.crypto (https://golang.org/x/crypto)
- * go.net (https://golang.org/x/net)
- * ed25519/extra25519 (https://github.com/agl/ed25519/extra25519)
- * SipHash-2-4 (https://github.com/dchest/siphash)
- * goptlib (https://git.torproject.org/pluggable-transports/goptlib.git)
+If you are on Go versions earlier than 1.11, you might need to run `go get -d
+./...` to download all the dependencies. Note however, that modules always use
+the same dependency versions, while `go get -d` always downloads master.
+
+ * Go 1.11.0 or later. Patches to support up to 2 prior major releases will
+   be accepted if they are not overly intrusive and well written.
+ * See `go.mod`, `go.sum` and `go list -m -u all` for build time dependencies.
 
 ### Installation
 
 To build:
-`go get git.torproject.org/pluggable-transports/obfs4.git/obfs4proxy`
 
-To install:
-Copy `$GOPATH/bin/obfs4proxy` to a permanent location (Eg: `/usr/local/bin`)
+	`go build -o obfs4proxy/obfs4proxy ./obfs4proxy`
+
+To install, copy `./obfs4proxy/obfsproxy` to a permanent location
+(Eg: `/usr/local/bin`)
 
 Client side torrc configuration:
 ```

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Yawning Angel <yawning at torproject dot org>
+ * Copyright (c) 2015, Yawning Angel <yawning at schwanenlied dot me>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,9 +50,9 @@ func hkdfExpand(hashFn func() hash.Hash, prk []byte, info []byte, l int) []byte 
 	ctr := byte(1)
 	for toAppend > 0 {
 		h.Reset()
-		h.Write(t)
-		h.Write(info)
-		h.Write([]byte{ctr})
+		_, _ = h.Write(t)
+		_, _ = h.Write(info)
+		_, _ = h.Write([]byte{ctr})
 		t = h.Sum(nil)
 		ctr++
 

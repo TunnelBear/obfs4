@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Yawning Angel <yawning at torproject dot org>
+ * Copyright (c) 2014, Yawning Angel <yawning at schwanenlied dot me>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@
 // and the initial counter value.  It is imperative that the counter does not
 // wrap, and sessions MUST terminate before 2^64 frames are sent.
 //
-package framing
+package framing // import "gitlab.com/yawning/obfs4.git/transports/obfs4/framing"
 
 import (
 	"bytes"
@@ -67,10 +67,9 @@ import (
 	"fmt"
 	"io"
 
+	"gitlab.com/yawning/obfs4.git/common/csrand"
+	"gitlab.com/yawning/obfs4.git/common/drbg"
 	"golang.org/x/crypto/nacl/secretbox"
-
-	"git.torproject.org/pluggable-transports/obfs4.git/common/csrand"
-	"git.torproject.org/pluggable-transports/obfs4.git/common/drbg"
 )
 
 const (

@@ -1,3 +1,29 @@
+Changes in version 0.0.12 - UNRELEASED:
+
+Changes in version 0.0.11 - 2019-06-21:
+ - Update my e-mail address.
+ - Change the obfs4 behavior for handling handshake failure to be more
+   uniform.  Thanks to Sergey Frolov for assistance.
+ - Bump the version of the utls fork.
+
+Changes in version 0.0.10 - 2019-04-12:
+ - Disable behavior distinctive to crypto/tls when using utls.
+ - Bump the version of the utls fork.
+
+Changes in version 0.0.9 - 2019-02-05:
+ - Various meek_lite code cleanups and bug fixes.
+ - Bug 29077: uTLS for ClientHello camouflage (meek_lite).
+ - More fixes to HTTP Basic auth.
+ - (meek_lite) Pin the certificate chain public keys for the default
+   Tor Browser Azure bridge (meek_lite).
+
+Changes in version 0.0.8 - 2019-01-20:
+ - Bug 24793: Send the correct authorization HTTP header for basic auth.
+ - (meek_lite) Explicitly set Content-Length to zero when there is no data
+   to send.
+ - Added optional support for building as a Go 1.11 module.  Patch by mvdan.
+ - Change the canonical upstream repo location to gitlab.
+
 Changes in version 0.0.7 - 2016-11-15:
  - Support configuring the obfs4 IAT parameter as the sole
    ServerTransportOption on bridges, and correctly checkpoint the argument

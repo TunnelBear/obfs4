@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Yawning Angel <yawning at torproject dot org>
+ * Copyright (c) 2014-2015, Yawning Angel <yawning at schwanenlied dot me>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
 
 // Package log implements a simple set of leveled logging wrappers around the
 // standard log package.
-package log
+package log // import "gitlab.com/yawning/obfs4.git/common/log"
 
 import (
 	"fmt"

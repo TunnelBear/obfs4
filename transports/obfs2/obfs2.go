@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Yawning Angel <yawning at torproject dot org>
+ * Copyright (c) 2015, Yawning Angel <yawning at schwanenlied dot me>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 // Package obfs2 provides an implementation of the Tor Project's obfs2
 // obfuscation protocol.  This protocol is considered trivially broken by most
 // sophisticated adversaries.
-package obfs2
+package obfs2 // import "gitlab.com/yawning/obfs4.git/transports/obfs2"
 
 import (
 	"crypto/aes"
@@ -41,8 +41,8 @@ import (
 	"time"
 
 	"git.torproject.org/pluggable-transports/goptlib.git"
-	"git.torproject.org/pluggable-transports/obfs4.git/common/csrand"
-	"git.torproject.org/pluggable-transports/obfs4.git/transports/base"
+	"gitlab.com/yawning/obfs4.git/common/csrand"
+	"gitlab.com/yawning/obfs4.git/transports/base"
 )
 
 const (
@@ -362,9 +362,9 @@ func mac(s, x []byte) []byte {
 	// H(x) is SHA256 of x.
 	// MAC(s, x) = H(s | x | s)
 	h := sha256.New()
-	h.Write(s)
-	h.Write(x)
-	h.Write(s)
+	_, _ = h.Write(s)
+	_, _ = h.Write(x)
+	_, _ = h.Write(s)
 	return h.Sum(nil)
 }
 

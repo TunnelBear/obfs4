@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Yawning Angel <yawning at torproject dot org>
+ * Copyright (c) 2014-2015, Yawning Angel <yawning at schwanenlied dot me>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,20 +40,20 @@ import (
 	"path"
 	"sync"
 	"syscall"
-
-	"golang.org/x/net/proxy"
-
-	"git.torproject.org/pluggable-transports/goptlib.git"
-	"git.torproject.org/pluggable-transports/obfs4.git/common/log"
-	"git.torproject.org/pluggable-transports/obfs4.git/common/socks5"
-	"git.torproject.org/pluggable-transports/obfs4.git/transports"
-	"git.torproject.org/pluggable-transports/obfs4.git/transports/base"
 	"path/filepath"
 	"strconv"
+
+	"git.torproject.org/pluggable-transports/goptlib.git"
+	"gitlab.com/yawning/obfs4.git/common/log"
+	"gitlab.com/yawning/obfs4.git/common/socks5"
+	"gitlab.com/yawning/obfs4.git/transports"
+	"gitlab.com/yawning/obfs4.git/transports/base"
+	"golang.org/x/net/proxy"
 )
 
 const (
-	obfs4proxyVersion = "1.0.1"
+	obfs4proxyVersion = "0.0.12-dev"
+	obfs4TBAndroidVer = "2.0.0"
 	obfs4proxyLogFile = "obfs4proxy.log"
 	socksAddr         = "127.0.0.1:%d"
 )
@@ -317,7 +317,7 @@ func copyLoop(a net.Conn, b net.Conn) error {
 }
 
 func getVersion() string {
-	return fmt.Sprintf("TunnelBear GhostBear Proxy - %s", obfs4proxyVersion)
+	return fmt.Sprintf("TunnelBear obfs4-android Proxy - %s", obfs4TBAndroidVer)
 }
 
 func main() {

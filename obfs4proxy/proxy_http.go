@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Yawning Angel <yawning at torproject dot org>
+ * Copyright (c) 2014, Yawning Angel <yawning at schwanenlied dot me>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/base64"
 	"fmt"
 	"net"
 	"net/http"
@@ -68,7 +69,7 @@ func (s *httpProxy) Dial(network, addr string) (net.Conn, error) {
 		return nil, err
 	}
 	conn := new(httpConn)
-	conn.httpConn = httputil.NewClientConn(c, nil)
+	conn.httpConn = httputil.NewClientConn(c, nil) // nolint: staticcheck
 	conn.remoteAddr, err = net.ResolveTCPAddr(network, addr)
 	if err != nil {
 		conn.httpConn.Close()
@@ -90,12 +91,14 @@ func (s *httpProxy) Dial(network, addr string) (net.Conn, error) {
 	}
 	req.Close = false
 	if s.haveAuth {
-		req.SetBasicAuth(s.username, s.password)
+		// SetBasicAuth doesn't quite do what is appropriate, because
+		// the correct header is `Proxy-Authorization`.
+		req.Header.Set("Proxy-Authorization", "Basic " + base64.StdEncoding.EncodeToString([]byte(s.username+":"+s.password)))
 	}
 	req.Header.Set("User-Agent", "")
 
 	resp, err := conn.httpConn.Do(req)
-	if err != nil && err != httputil.ErrPersistEOF {
+	if err != nil && err != httputil.ErrPersistEOF { // nolint: staticcheck
 		conn.httpConn.Close()
 		return nil, err
 	}
@@ -110,7 +113,7 @@ func (s *httpProxy) Dial(network, addr string) (net.Conn, error) {
 
 type httpConn struct {
 	remoteAddr   *net.TCPAddr
-	httpConn     *httputil.ClientConn
+	httpConn     *httputil.ClientConn // nolint: staticcheck
 	hijackedConn net.Conn
 	staleReader  *bufio.Reader
 }
