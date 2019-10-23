@@ -7,8 +7,9 @@ The original obfs4 from Yawning was not meant to be standalone/unmanaged nor spe
 * Have Golang 1.13+ installed on your computer.
 * Be using Bash, the script will not work using Fish or another Shell.
 * Take ownership of `./obfs4proxy/android_build.sh`.
+* Wireshark for testing (optional).
 
-### Building steps
+### Building Steps
 1. Download Android NDK r16b ([here](https://developer.android.com/ndk/downloads/revision_history.html)), place it in `$HOME/Library/Android/sdk/ndk-bundle`.
 2. Prepare the Android project that will make use of obfs4, with _minSdkVersion 16_. Note the directory of this project.
    * If your _minSdkVersion_ is different than that, you will need to change the `ndk_platform` in `./obfs4proxy/android_build.sh` to match it.
@@ -18,6 +19,15 @@ The original obfs4 from Yawning was not meant to be standalone/unmanaged nor spe
    * The `-n` flag is the path to the NDK r16b described in step 1 above. It is optional, without it the default `$HOME/Library/Android/sdk/ndk-bundle` path will be used.
    * The `-h` flag has no parameters. It is optional and simply displays the help text.
 4. When completed successfully, if an Android project source was provided, the binaries can be found in `$PROJECT_SRC/libs/${suffix}/libexecpieproxy.so` otherwise they can be found in `./out/`.
+
+### Testing Steps
+1. Using the following command, start an emulator and have it write traffic to a `.cap` file:
+    * `~/Library/Android/sdk/emulator/emulator @emulator_name -verbose -tcpdump filename.cap`
+    * E.g. `emulator @DEVICE_NAME -verbose -tcpdump ghostbear-on.cap`
+2. Open the Android app, turn on obfs4 obfuscation, connect to VPN, and get some internet traffic going.
+3. Open the `.cap` file in Wireshark
+    * Obfs4 obfuscation OFF: Protocol type will show as _OpenVpn_.
+    * Obfs4 obfuscation ON: Protocol type will show as _UDP_ or _TCP_.
 
 ### TODO
 * Have the `android_build.sh` script accept two additional flags, `-m` for _minSdkVersion_ and `-t` for architectures you want to target. This will minimize the need to make changes to `android_build.sh` itself.

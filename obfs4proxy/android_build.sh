@@ -23,7 +23,7 @@ while getopts ":s:n:h" opt; do
 		*)
 			echo "Invalid flag."
 			help
-			exit 0
+			exit 1
 			;;
   esac
 done
@@ -31,11 +31,11 @@ shift $((OPTIND-1))
 
 help
 
-if [[ $PROJECT_SRC == "" ]] ; then
+if [[ -z $PROJECT_SR ]] ; then
 	echo "Path to Android project not provided through '-s' flag, will not automatically copy binaries when completed."
 fi
 
-if [[ $NDK == "" ]] ; then
+if [[ -z $NDK ]] ; then
 	NDK="$HOME/Library/Android/sdk/ndk-bundle"
 	echo "Path to NDK-bundle not provided through '-n' flag, will use default directory: $NDK"
 fi
@@ -54,10 +54,10 @@ if [[ -d ./out ]]; then
 	echo "Done!"
 fi
 
-if [ -z $NDK ]; then
+if [ ! -d "${NDK}" ]; then
 	echo "Android NDK path not specified!"
 	echo "Please set \$NDK before starting this script!"
-	return 1;
+	exit 1;
 fi
 
 # Our targets are x86, x86_64, armeabi, armeabi-v7a, armv8;
