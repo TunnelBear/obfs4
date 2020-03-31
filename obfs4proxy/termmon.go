@@ -39,7 +39,6 @@ import (
 	"gitlab.com/yawning/obfs4.git/common/log"
 )
 
-//var termMonitorOSInit func(*termMonitor) error
 
 type termMonitor struct {
 	sigChan     chan os.Signal
@@ -120,13 +119,6 @@ func newTermMonitor() (m *termMonitor) {
 		//  * Linux - Platform specific code that should always work.
 		//  * Other U*IX - Somewhat generic code, that works unless the
 		//    parent dies before the monitor is initialized.
-		//if termMonitorOSInit != nil {
-		//	// Errors here are non-fatal, since it might still be
-		//	// possible to fall back to a generic implementation.
-		//	if err := termMonitorOSInit(m); err == nil {
-		//		return
-		//	}
-		//}
 		if runtime.GOOS != "windows" && runtime.GOOS != "darwin" {
 			go m.termOnPPIDChange(ppid)
 		}
