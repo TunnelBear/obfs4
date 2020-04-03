@@ -40,6 +40,8 @@ import (
 	"path"
 	"sync"
 	"syscall"
+	"path/filepath"
+	"strconv"
 
 	"git.torproject.org/pluggable-transports/goptlib.git"
 	"gitlab.com/yawning/obfs4.git/common/log"
@@ -51,14 +53,15 @@ import (
 
 const (
 	obfs4proxyVersion = "0.0.12-dev"
+	ghostBearVersion  = "2.0.0"
 	obfs4proxyLogFile = "obfs4proxy.log"
-	socksAddr         = "127.0.0.1:0"
+	socksAddr         = "127.0.0.1:%d"
 )
 
 var stateDir string
 var termMon *termMonitor
 
-func clientSetup() (launched bool, listeners []net.Listener) {
+func clientSetup(socksPort int, sharedSecret string, iatMode int) (launched bool, listeners []net.Listener) {
 	ptClientInfo, err := pt.ClientSetup(transports.Transports())
 	if err != nil {
 		golog.Fatal(err)
@@ -85,14 +88,14 @@ func clientSetup() (launched bool, listeners []net.Listener) {
 			continue
 		}
 
-		ln, err := net.Listen("tcp", socksAddr)
+		ln, err := net.Listen("tcp", fmt.Sprintf(socksAddr, socksPort))
 		if err != nil {
 			_ = pt.CmethodError(name, err.Error())
 			continue
 		}
 
 		go func() {
-			_ = clientAcceptLoop(f, ln, ptClientProxy)
+			_ = clientAcceptLoop(f, ln, ptClientProxy, sharedSecret, iatMode)
 		}()
 		pt.Cmethod(name, socks5.Version(), ln.Addr())
 
@@ -106,7 +109,7 @@ func clientSetup() (launched bool, listeners []net.Listener) {
 	return
 }
 
-func clientAcceptLoop(f base.ClientFactory, ln net.Listener, proxyURI *url.URL) error {
+func clientAcceptLoop(f base.ClientFactory, ln net.Listener, proxyURI *url.URL, sharedSecret string, iatMode int) error {
 	defer ln.Close()
 	for {
 		conn, err := ln.Accept()
@@ -116,11 +119,11 @@ func clientAcceptLoop(f base.ClientFactory, ln net.Listener, proxyURI *url.URL) 
 			}
 			continue
 		}
-		go clientHandler(f, conn, proxyURI)
+		go clientHandler(f, conn, proxyURI, sharedSecret, iatMode)
 	}
 }
 
-func clientHandler(f base.ClientFactory, conn net.Conn, proxyURI *url.URL) {
+func clientHandler(f base.ClientFactory, conn net.Conn, proxyURI *url.URL, sharedSecret string, iatMode int) {
 	defer conn.Close()
 	termMon.onHandlerStart()
 	defer termMon.onHandlerFinish()
@@ -135,7 +138,18 @@ func clientHandler(f base.ClientFactory, conn net.Conn, proxyURI *url.URL) {
 	}
 	addrStr := log.ElideAddr(socksReq.Target)
 
+
 	// Deal with arguments.
+	socksReq.Args = make(pt.Args)
+
+	// HACK: Add the various args each protocol needs here so that ParseArgs won't error out.
+	// TODO: Implement more than just scramblesuit and obfs4 someday?
+	if name == "obfs4" {
+		socksReq.Args.Add("cert", sharedSecret)
+		socksReq.Args.Add("iat-mode", strconv.FormatInt(int64(iatMode), 10))
+	} else if name == "scramblesuit" {
+		socksReq.Args.Add("password", sharedSecret)
+	}
 	args, err := f.ParseArgs(&socksReq.Args)
 	if err != nil {
 		log.Errorf("%s(%s) - invalid arguments: %s", name, addrStr, err)
@@ -269,6 +283,7 @@ func serverHandler(f base.ServerFactory, conn net.Conn, info *pt.ServerInfo) {
 func copyLoop(a net.Conn, b net.Conn) error {
 	// Note: b is always the pt connection.  a is the SOCKS/ORPort connection.
 	errChan := make(chan error, 2)
+	log.Infof("Copy loop started")
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -293,6 +308,7 @@ func copyLoop(a net.Conn, b net.Conn) error {
 	// something like EINVAL (though io.Copy() will swallow EOF), so only the
 	// first error is returned.
 	wg.Wait()
+	log.Infof("Copy loop finished")
 	if len(errChan) > 0 {
 		return <-errChan
 	}
@@ -301,20 +317,45 @@ func copyLoop(a net.Conn, b net.Conn) error {
 }
 
 func getVersion() string {
-	return fmt.Sprintf("obfs4proxy-%s", obfs4proxyVersion)
+	return fmt.Sprintf("TunnelBear GhostBear Proxy - %s", ghostBearVersion)
 }
 
 func main() {
+	// Set the Tor pluggable transport environment variables required to make everything work in client mode
+	os.Setenv("TOR_PT_MANAGED_TRANSPORT_VER", "1")
+	os.Setenv("TOR_PT_CLIENT_TRANSPORTS", "1")
+
+	dir, derr := filepath.Abs(filepath.Dir(os.Args[0]))
+	if derr != nil {
+		fmt.Printf("%s", derr)
+	}
+	fmt.Println("Launched from: " + dir)
 	// Initialize the termination state monitor as soon as possible.
 	termMon = newTermMonitor()
 
 	// Handle the command line arguments.
 	_, execName := path.Split(os.Args[0])
 	showVer := flag.Bool("version", false, "Print version and exit")
-	logLevelStr := flag.String("logLevel", "ERROR", "Log level (ERROR/WARN/INFO/DEBUG)")
-	enableLogging := flag.Bool("enableLogging", false, "Log to TOR_PT_STATE_LOCATION/"+obfs4proxyLogFile)
-	unsafeLogging := flag.Bool("unsafeLogging", false, "Disable the address scrubber")
+	logLevelStr := flag.String("logLevel", "INFO", "Log level (ERROR/WARN/INFO/DEBUG)")
+	enableLogging := flag.Bool("enableLogging", true, "Log to TOR_PT_STATE_LOCATION/" + obfs4proxyLogFile)
+	unsafeLogging := flag.Bool("unsafeLogging", true, "Disable the address scrubber")
+	socksPort := flag.Int("socksPort", 45578, "local port on which proxy will listen")
+	obfsProtocol := flag.String("obfsProtocol", "obfs4", "The obfuscation obfsProtocol to use (Default is obfs4)")
+	sharedSecret := flag.String("sharedSecret", "", "Obfs4/scramblesuit shared secret (Mandatory)")
+	iatMode := flag.Int("iatMode", 0, "Inter-Arrival Traffic obfuscation mode (0 = Off, 1 = Timing obfuscation, 2 = Timing and packet size obfuscation")
+	stateDirectory := flag.String("stateDir", dir, "Dir for proxy state")
 	flag.Parse()
+
+	// Bail out if user doesn't provide a sharedSecret field
+	if *sharedSecret == "" {
+		golog.Fatalf("%s - No shared secret provided; Shutting down", execName)
+		os.Exit(-1)
+	}
+
+	stateDir = *stateDirectory
+	os.Setenv("TOR_PT_STATE_LOCATION", stateDir)
+
+	os.Setenv("TOR_PT_CLIENT_TRANSPORTS", *obfsProtocol)
 
 	if *showVer {
 		fmt.Printf("%s\n", getVersion())
@@ -331,11 +372,17 @@ func main() {
 	if err != nil {
 		golog.Fatalf("[ERROR]: %s - must be run as a managed transport", execName)
 	}
-	if stateDir, err = pt.MakeStateDir(); err != nil {
-		golog.Fatalf("[ERROR]: %s - No state directory: %s", execName, err)
+
+	if stateDir == "" {
+		if stateDir, err = pt.MakeStateDir(); err != nil {
+			log.Errorf("[ERROR]: %s - No state directory: %s", execName, err)
+		}
 	}
+
+	fmt.Printf("[INFO]: State directory: %s\n", stateDir)
+
 	if err = log.Init(*enableLogging, path.Join(stateDir, obfs4proxyLogFile), *unsafeLogging); err != nil {
-		golog.Fatalf("[ERROR]: %s - failed to initialize logging", execName)
+		log.Errorf("[ERROR]: %s - failed to initialize logging", execName)
 	}
 	if err = transports.Init(); err != nil {
 		log.Errorf("%s - failed to initialize transports: %s", execName, err)
@@ -343,11 +390,12 @@ func main() {
 	}
 
 	log.Noticef("%s - launched", getVersion())
+	log.Noticef("Logging to " + path.Join(stateDir, obfs4proxyLogFile))
 
 	// Do the managed pluggable transport protocol configuration.
 	if isClient {
 		log.Infof("%s - initializing client transport listeners", execName)
-		launched, ptListeners = clientSetup()
+		launched, ptListeners = clientSetup(*socksPort, *sharedSecret, *iatMode)
 	} else {
 		log.Infof("%s - initializing server transport listeners", execName)
 		launched, ptListeners = serverSetup()
